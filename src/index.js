@@ -7,9 +7,16 @@ const styles = {
   textAlign: "center"
 };
 
+const tags = {
+  "{{USER}}": "DanCassiano",
+  "{{id}}": 10
+};
+
+const url = "https://{{USER}}.github.com/{{id}}";
+
 const App = () => (
   <div style={styles}>
-    <InputURL />
+    <InputURL tags={tags} value={url} />
   </div>
 );
 

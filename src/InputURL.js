@@ -1,69 +1,41 @@
 import React, { Component, Fragment } from "react";
-import styled from "styled-components";
-
-const Wrapper = styled.div`
-  border: 1px solid rgba(0, 0, 0, 0.54);  
-  border-radius: 4px;
-`;
-
-const Input = styled.input`
-  border: none;
-  background-color: #ccc;
-  padding: 10px;
-  width: 100%;
-  box-sizing: border-box;  
-  height: 28px;
-  font-size: 14px;
-`;
-
-const Text = styled.p`
-  margin: 0;
-  border: none;
-  background-color: white;
-  padding: 5px;  
-  box-sizing: border-box;
-  height: 28px;    
-  font-size: 14px;
-  text-align: left;
-  vertical-algin: middle;
-`;
-
-const Tag = styled.p`
-  background-color: #ddd;
-  padding: 3px 10px;
-  display: inline-block;
-  margin: 0 2px 0px 2px;
-  border-radius: 6px;
-`;
-
-const tags = {
-  "{{USER}}": "DanCassiano",
-  "{{id}}": 10
-};
+import { Wrapper, Input, Text, Tag } from "./Utils";
+import PropTypes from "prop-types";
 
 class InputURL extends Component {
+  static propTypes = {
+    tags: PropTypes.array,
+    value: PropTypes.string
+  };
+
+  static defaultProps = {
+    tags: [],
+    value: ""
+  };
+
   state = {
-    value: "https://github.com/{{USER}}/{{id}}",
+    value: this.props.value || "",
     active: false
   };
 
-  onChange = e => {
+  onChange = e =>
     this.setState({
       value: e.target.value
     });
-  };
 
-  onBlur = () => {
-    this.setState({ active: false });
-  };
+  onBlur = () => this.setState({ active: false });
 
-  activeInput = () => {
+  activeInput = () =>
     this.setState({ active: true }, () => this._input.focus());
-  };
+
+  deactiveInput = () => this.setState({ active: false });
 
   parseTags = () => {
     const { value } = this.state;
     const regex = /\{\{[a-zA-Z]+\}\}/g;
+
+    if (this.props.tags.length === 0) return value;
+
     const splitStr = value.split(regex);
     const items = value.match(regex);
     const newStr = splitStr.reduce((prev, current, i) => {
@@ -71,12 +43,27 @@ class InputURL extends Component {
         return [current];
       }
 
-      const stValue = tags[items[i - 1]];
-      return prev.concat(<Tag key={value + current}>{stValue}</Tag>, current);
+      const stValue = this.props.tags[items[i - 1]];
+
+      if (!stValue) {
+        return prev.concat(current);
+      }
+      return prev.concat(
+        <Tag key={value + current} title={items[i - 1]}>
+          {stValue}
+        </Tag>,
+        current
+      );
     }, []);
-    console.log(value.match(regex));
 
     return <Fragment>{newStr}</Fragment>;
+  };
+
+  checkKeyUp = event => {
+    const code = event.keyCode || event.which;
+    if (code === 13) {
+      this.deactiveInput();
+    }
   };
 
   render() {
@@ -88,6 +75,7 @@ class InputURL extends Component {
             value={this.state.value}
             onChange={this.onChange}
             onBlur={this.onBlur}
+            onKeyUp={this.checkKeyUp}
           />
         ) : (
           <Text>{this.parseTags()}</Text>
